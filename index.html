@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>LFG Pepper Progress</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--ink:#12232e;--muted:#5b6b76;--line:#e3e8ec;--accent:#0b6b5f;--accent2:#0e8a79;
+ --chip:#eef3f2;--soft:#b9d6d0;--line2:#e07a3f;--pos:#0e8a79;--neg:#c0392b;--na:#8a99a3}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1518;--card:#15201f;--ink:#e8eeec;--muted:#9fb0ab;
+ --line:#243230;--accent:#2bb39c;--accent2:#37c9af;--chip:#1c2a28;--soft:#2c4a44;--line2:#f0955c;--pos:#37c9af;--neg:#e6785f;--na:#7d8c88}}
+:root[data-theme="dark"]{--bg:#0e1518;--card:#15201f;--ink:#e8eeec;--muted:#9fb0ab;--line:#243230;--accent:#2bb39c;--accent2:#37c9af;
+ --chip:#1c2a28;--soft:#2c4a44;--line2:#f0955c;--pos:#37c9af;--neg:#e6785f;--na:#7d8c88}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1160px;margin:0 auto;padding:0 16px}
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+#gate .box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:32px;max-width:400px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.08)}
+#gate h1{font-size:20px;margin:0 0 4px}#gate p{color:var(--muted);font-size:14px;margin:0 0 20px}
+#gate input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font-size:16px}
+#gate button{width:100%;margin-top:12px;padding:12px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-size:15px;font-weight:600;cursor:pointer}
+#gate .err{color:var(--neg);font-size:13px;margin-top:10px;min-height:16px}
+header{background:var(--card);border-bottom:1px solid var(--line);padding:16px 0}
+header .row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+header h1{font-size:19px;margin:0}header .sub{color:var(--muted);font-size:13px;margin-top:2px}
+#logout{font-size:12px;background:none;border:1px solid var(--line);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer}
+#freshness{margin:16px 0 0;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:600}
+#freshness.ok{background:var(--chip);color:var(--muted)}
+#freshness.stale{background:#fdecea;color:#b02a1a;border:1px solid #f3b4ab}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:16px 0}
+.card h2{font-size:17px;margin:0 0 4px}.card .desc{color:var(--muted);font-size:13px;margin:0 0 14px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.4px;text-transform:uppercase}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.na{color:var(--na);font-style:italic}
+.pos{color:var(--pos);font-weight:600}.neg{color:var(--neg);font-weight:600}.muted{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.mini{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg)}
+.mini h3{font-size:14px;margin:0}.mini .big{font-size:22px;font-weight:700;margin-top:4px}
+.mini .note{font-size:12px;color:var(--muted);margin-top:2px;min-height:17px}
+.mini .chart{position:relative;height:170px;margin-top:8px}
+.mini.impl{display:flex;flex-direction:column;justify-content:center;min-height:120px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:0 0 12px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.notes{font-size:13px;color:var(--muted)}.notes li{margin:4px 0}
+footer{color:var(--muted);font-size:12px;padding:10px 0 40px}
+</style></head><body>
+<div id="gate"><div class="box">
+ <h1>Legacy Food Group</h1><p>Pepper progress by division. Enter the password to view.</p>
+ <form id="gf"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" autofocus>
+ <button type="submit">View dashboard</button><div class="err" id="err"></div></form>
+</div></div>
+<header><div class="wrap row">
+ <div><h1>Legacy Food Group: Pepper Progress</h1><div class="sub" id="sub"></div></div>
+ <button id="logout">Lock</button>
+</div></header>
+<main class="wrap">
+ <div id="freshness"></div>
+ <section class="card"><h2>All divisions at a glance</h2>
+  <p class="desc" id="glance-desc"></p>
+  <div class="tablewrap"><table id="glance"></table></div></section>
+ <section class="card"><h2>Adoption by division</h2>
+  <p class="desc">Customers placing orders on Pepper each month, and the share of each division's invoiced customers that represents.</p>
+  <div class="legend"><span><span class="sw" style="background:var(--accent2)"></span>Customers ordering on Pepper</span>
+   <span><span class="sw" style="background:var(--line2)"></span>% of invoiced customers</span>
+   <span><span class="sw" style="background:var(--soft)"></span>Current month to date</span></div>
+  <div class="grid" id="adoption"></div></section>
+ <section class="card"><h2>Off order guide revenue on Pepper</h2>
+  <p class="desc">Revenue from items customers bought on Pepper that are not on their order guide: new items they found in the app.</p>
+  <div class="legend"><span><span class="sw" style="background:var(--accent2)"></span>Off order guide revenue</span>
+   <span><span class="sw" style="background:var(--soft)"></span>Current month to date</span></div>
+  <div class="grid" id="offguide"></div></section>
+ <section class="card"><h2>How to read this</h2><ul class="notes" id="notes"></ul></section>
+ <footer id="foot"></footer>
+</main>
+<script>
+const ENC={salt:"8WPLEkbHiiHvwLp7sDuuVw==",iv:"NcbGTpzrXx5gA5Lq",ct:"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",iter:200000};
+const STALE_DAYS=2;
+const $=s=>document.querySelector(s);
+const b64d=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+let DATA=null;
+async function decrypt(pw){
+  const enc=new TextEncoder();
+  const km=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveKey"]);
+  const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:b64d(ENC.salt),iterations:ENC.iter,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["decrypt"]);
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:b64d(ENC.iv)},key,b64d(ENC.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+$("#gf").onsubmit=async e=>{e.preventDefault();const pw=$("#pw").value;
+  try{DATA=await decrypt(pw);try{sessionStorage.setItem("lfg_pw",pw);}catch(x){}boot();}catch(x){$("#err").textContent="That password didn't work.";}};
+$("#logout").onclick=()=>{try{sessionStorage.removeItem("lfg_pw");}catch(x){}location.reload();};
+(async()=>{try{const p=sessionStorage.getItem("lfg_pw");if(p){DATA=await decrypt(p);boot();}}catch(x){}})();
+
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const ml=(m,y=true)=>{const[a,b]=m.split("-");return MON[+b-1]+(y?" "+a:"");};
+const mshort=m=>{const[a,b]=m.split("-");return MON[+b-1]+" "+a.slice(2);};
+const prevYear=m=>{const[a,b]=m.split("-");return (+a-1)+"-"+b;};
+const money=v=>v==null?"N/A":"$"+(v>=1e6?(v/1e6).toFixed(2)+"M":v>=1e4?Math.round(v/1e3)+"K":v>=1e3?(v/1e3).toFixed(1)+"K":Math.round(v));
+const pct=v=>v==null?"N/A":Math.round(v*100)+"%";
+const delta=v=>v==null?'<span class="muted">N/A</span>':`<span class="${v>=0?"pos":"neg"}">${v>=0?"+":""}${Math.round(v*100)}%</span>`;
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function boot(){
+  $("#gate").style.display="none";
+  const D=DATA, lf=D.last_full_month, cur=D.current_month;
+  const gen=new Date(D.generated_at_iso);
+  $("#sub").textContent="Updated "+gen.toLocaleString([], {dateStyle:"medium",timeStyle:"short"});
+  const age=(Date.now()-gen.getTime())/864e5, fr=$("#freshness");
+  if(age>STALE_DAYS){fr.className="stale";fr.textContent="This data may be out of date: last refreshed "+gen.toLocaleDateString()+". It normally updates daily.";}
+  else{fr.className="ok";fr.textContent="Updated daily. Last refresh "+gen.toLocaleString([], {dateStyle:"medium",timeStyle:"short"})+".";}
+  $("#glance-desc").textContent=`${ml(lf)} (the last full month), compared with ${ml(prevYear(lf))}.`;
+
+  let h=`<thead><tr><th>Division</th><th class="num">Customers ordering on Pepper</th><th class="num">vs last year</th><th class="num">% of invoiced customers</th><th class="num">Off order guide revenue</th><th class="num">vs last year</th></tr></thead><tbody>`;
+  for(const d of D.divisions){
+    if(d.status!=="live"){h+=`<tr><td><b>${d.name}</b></td><td class="na num" colspan="5">N/A, in implementation</td></tr>`;continue;}
+    const r=d.last_full;
+    h+=`<tr><td><b>${d.name}</b></td><td class="num">${Math.round(r.custs)}</td><td class="num">${delta(r.custs_yoy)}</td>
+      <td class="num">${r.pct==null?'<span class="muted">N/A</span>':pct(r.pct)}</td><td class="num">${money(r.og)}</td><td class="num">${delta(r.og_yoy)}</td></tr>`;
+  }
+  $("#glance").innerHTML=h+"</tbody>";
+
+  const labels=D.window.map(m=>mshort(m)+(m===cur?"*":""));
+  const barColors=D.window.map(m=>m===cur?css("--soft"):css("--accent2"));
+  const gridC=css("--line"), tickC=css("--muted");
+  const baseOpts=(extra)=>({responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false},tooltip:{mode:"index",intersect:false}},
+    scales:Object.assign({x:{grid:{display:false},ticks:{color:tickC,font:{size:10},maxRotation:0,autoSkip:true,maxTicksLimit:7}},
+      y:{beginAtZero:true,grid:{color:gridC},ticks:{color:tickC,font:{size:10}}}},extra||{})});
+
+  const A=$("#adoption"), O=$("#offguide");
+  D.divisions.forEach((d,i)=>{
+    if(d.status!=="live"){
+      const cell=`<div class="mini impl"><h3>${d.name}</h3><div class="note">N/A, still in implementation. Numbers start once they're live on Pepper.</div></div>`;
+      A.insertAdjacentHTML("beforeend",cell);O.insertAdjacentHTML("beforeend",cell);return;}
+    const r=d.last_full;
+    const pctNote=r.pct!=null?`${pct(r.pct)} of ${Math.round(r.erp)} invoiced customers in ${ml(lf,false)}`:
+      (d.feed_since?"":"% of invoiced customers needs an invoice feed from the ERP");
+    A.insertAdjacentHTML("beforeend",`<div class="mini"><h3>${d.name}</h3><div class="big">${Math.round(r.custs)} <span class="muted" style="font-size:13px;font-weight:500">customers in ${ml(lf,false)}</span></div>
+      <div class="note">${pctNote}</div><div class="chart"><canvas id="a${i}"></canvas></div></div>`);
+    O.insertAdjacentHTML("beforeend",`<div class="mini"><h3>${d.name}</h3><div class="big">${money(r.og)} <span class="muted" style="font-size:13px;font-weight:500">in ${ml(lf,false)}</span></div>
+      <div class="note">${r.og_yoy!=null?delta(r.og_yoy)+" vs "+ml(prevYear(lf))+" ("+money(r.og_prev)+")":"Not on Pepper long enough for a year over year comparison"}</div><div class="chart"><canvas id="o${i}"></canvas></div></div>`);
+    const hasPct=d.months.some(x=>x.pct!=null);
+    const ds=[{type:"bar",data:d.months.map(x=>x.custs),backgroundColor:barColors,borderRadius:4,yAxisID:"y",label:"Customers ordering on Pepper",order:2}];
+    const extra={};
+    if(hasPct){ds.push({type:"line",data:d.months.map(x=>x.pct==null?null:Math.round(x.pct*1000)/10),borderColor:css("--line2"),backgroundColor:css("--line2"),
+        pointRadius:2,borderWidth:2,spanGaps:false,yAxisID:"y1",label:"% of invoiced customers",order:1});
+      extra.y1={position:"right",beginAtZero:true,suggestedMax:50,grid:{display:false},ticks:{color:tickC,font:{size:10},callback:v=>v+"%"}};}
+    new Chart($("#a"+i),{data:{labels,datasets:ds},options:baseOpts(extra)});
+    new Chart($("#o"+i),{type:"bar",data:{labels,datasets:[{data:d.months.map(x=>x.og),backgroundColor:barColors,borderRadius:4,label:"Off order guide revenue"}]},
+      options:baseOpts({y:{beginAtZero:true,grid:{color:gridC},ticks:{color:tickC,font:{size:10},callback:v=>money(v)}}})});
+  });
+
+  const live=D.divisions.filter(d=>d.status==="live");
+  const notes=[
+    `<b>Customers ordering on Pepper:</b> distinct customer accounts that placed at least one order on Pepper that month, whether they ordered themselves or a rep entered it.`,
+    `<b>% of invoiced customers:</b> customers ordering on Pepper divided by all customers invoiced in the ERP that month. It needs the division's invoice feed, so it shows N/A without one.`,
+    ...live.filter(d=>!d.feed_since).map(d=>`<b>${d.name}:</b> no invoice feed to Pepper yet, so % of invoiced customers is N/A.`),
+    ...live.filter(d=>d.feed_since && d.feed_since>D.window[0]).map(d=>`<b>${d.name}:</b> invoice feed started in ${ml(d.feed_since)}, so % of invoiced customers starts there.`),
+    `<b>Off order guide revenue:</b> Pepper order revenue from items not on that customer's order guide. Unusually large outlier orders are excluded.`,
+    `<b>vs last year:</b> the same month a year earlier. It shows N/A when the division wasn't fully on Pepper yet that month.`,
+    `<b>* ${ml(cur)}</b> is month to date and fills in as the month goes.`,
+    `<b>Kecks Food Service and Duva Distributors</b> are still in implementation and will appear once they're live.`];
+  $("#notes").innerHTML=notes.map(n=>`<li>${n}</li>`).join("");
+  $("#foot").textContent="Prepared by Pepper for Legacy Food Group. Questions: ben.schafer@usepepper.com";
+}
+</script></body></html>
